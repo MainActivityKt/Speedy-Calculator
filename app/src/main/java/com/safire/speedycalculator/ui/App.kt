@@ -93,10 +93,10 @@ fun App(
                 .padding(innerPadding)
         ) {
             Text(
-                uiState.value.enteredEquation,
+                uiState.value.enteredExpression,
                 style = MaterialTheme.typography.bodySmall,
                 lineHeight = 1.2.em,
-                fontSize = 38.sp,
+                fontSize = 44.sp,
                 textAlign = TextAlign.End,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -106,7 +106,7 @@ fun App(
             Text(
                 uiState.value.result,
                 style = MaterialTheme.typography.bodySmall,
-                fontSize = 34.sp,
+                fontSize = 40.sp,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.End,
                 modifier = Modifier
@@ -140,13 +140,12 @@ fun App(
                     top = dimensionResource(R.dimen.medium_padding),
                     bottom = dimensionResource(R.dimen.large_padding),
                     start = dimensionResource(R.dimen.small_padding),
-                    end = dimensionResource(R.dimen.small_padding)),
+                    end = dimensionResource(R.dimen.small_padding)
+                ),
                 modifier = Modifier
                     .fillMaxHeight()
 
             ) {
-
-
 
 
                 items(keys) { it ->
