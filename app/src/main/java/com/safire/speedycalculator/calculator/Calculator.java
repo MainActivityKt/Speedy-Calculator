@@ -1,12 +1,10 @@
 package com.safire.speedycalculator.calculator;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Calculator {
@@ -19,8 +17,6 @@ public class Calculator {
 
     Map<String, Operator> operatorsPrecedence = new HashMap<>();
 
-
-
     public Calculator() {
         operatorsPrecedence.put("+", new Operator(1, OperatorName.ADD));
         operatorsPrecedence.put("-", new Operator(1, OperatorName.SUBTRACT));
@@ -29,10 +25,12 @@ public class Calculator {
         operatorsPrecedence.put("%", new Operator(3, OperatorName.PERCENTAGE));
     }
 
-    public String calculate(String line) {
-
+    public String evaluateExpression(String line) {
         Deque<String> postfix = getPostfix(line);
+        return calculatePostfix(postfix);
+    }
 
+    private String calculatePostfix(Deque<String> postfix) {
         if (postfix.isEmpty()) {
             return "Invalid expression";
         } else {
@@ -76,17 +74,16 @@ public class Calculator {
         }
     }
 
-    Deque<String> getPostfix(String infix) {
+    private Deque<String> getPostfix(String infix) {
 
         Deque<String> result = new ArrayDeque<>();
         Deque<String> stack = new ArrayDeque<>(); //rename to operatorsStack
 
+        Pattern pattern = Pattern.compile("(?<![\\d)])-?\\d+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?|[-+x÷%()]");
+        Matcher matcher = pattern.matcher(infix);
 
-
-        Scanner sc = new Scanner(infix);
-
-        while (sc.hasNext()) {
-            String value = sc.next();
+        while (matcher.find()) {
+            String value = matcher.group();
 
             if (SINGLE_NUMBER.matcher(value).matches()) {
                 result.addLast(value);
@@ -133,7 +130,6 @@ public class Calculator {
         while (!stack.isEmpty()) {
             result.offer(stack.pop());
         }
-        sc.close();
         return result;
     }
 }

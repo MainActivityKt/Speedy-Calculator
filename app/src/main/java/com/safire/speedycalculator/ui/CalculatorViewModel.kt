@@ -69,22 +69,21 @@ class CalculatorViewModel : ViewModel() {
             }
 
             KeyCategory.CLEAR -> {
-                resetCalculator()
+                resetViewModel()
 
             }
 
             KeyCategory.EQUAL_SIGN -> {
-                if (!lastValue.isOperator()) {
-                    var result = calculator.calculate(_uiState.value.enteredExpression)
-                    result = "%,.10f".format(result.toDouble())
-                    // removes trailing zeros in decimal digits
-                    val formattedResult = result.replace(Regex("\\.?0*$"), "")
+                if (_uiState.value.result.isNotEmpty()) {
 
                     _uiState.update {
-                        it.copy(result = formattedResult)
+                        it.copy(
+                            enteredExpression = _uiState.value.result,
+                            result = ""
+                        )
                     }
+                    lastEntryHasDecimal = _uiState.value.enteredExpression.contains(".")
                     openingParenthesisCount = 0
-                    lastEntryHasDecimal = false
                 }
             }
 
@@ -109,7 +108,12 @@ class CalculatorViewModel : ViewModel() {
             lastEntryHasDecimal = false
         }
         _uiState.update {
-            it.copy(enteredExpression = it.enteredExpression + value, result = "")
+            val expression = it.enteredExpression + value
+            val result = if (expression.expressionIsValid()) calculator.evaluateExpression(expression) else ""
+            it.copy(
+                enteredExpression = expression,
+                result = result
+            )
         }
     }
 
@@ -128,17 +132,28 @@ class CalculatorViewModel : ViewModel() {
             CLOSING_PARENTHESIS -> openingParenthesisCount++
             "." -> lastEntryHasDecimal = false
         }
-        _uiState.update { it.copy(enteredExpression = it.enteredExpression.dropLast(1)) }
+        _uiState.update {
+            val expression = it.enteredExpression.dropLast(1)
+            it.copy(
+                enteredExpression = expression,
+                result = if (expression.expressionIsValid()) calculator.evaluateExpression(expression) else ""
+            )
+        }
 
     }
 
-    private fun resetCalculator() {
+    private fun resetViewModel() {
         _uiState.update { it -> CalculatorUiState("", "") }
         openingParenthesisCount = 0
         lastEntryHasDecimal = false
     }
 }
 
+fun String.expressionIsValid() =
+    isNotEmpty() &&
+    !endsWith('.') &&
+            !last().isOperator() &&
+            !last().isOpeningParenthesis() && count { it.isOpeningParenthesis() } == count { it.isClosingParenthesis() }
 
 fun Char.isClosingParenthesis() = this.toString() == CLOSING_PARENTHESIS
 fun Char.isOpeningParenthesis() = this.toString() == OPENING_PARENTHESIS

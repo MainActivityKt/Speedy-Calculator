@@ -3,6 +3,7 @@ package com.safire.speedycalculator.ui
 import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -11,10 +12,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridItemSpanScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -100,37 +105,44 @@ fun App(
                 textAlign = TextAlign.End,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .fillMaxHeight(0.3f)
                     .padding(dimensionResource(R.dimen.medium_padding))
             )
 
             Text(
-                uiState.value.result,
+                uiState.value.result.format(),
                 style = MaterialTheme.typography.bodySmall,
                 fontSize = 40.sp,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.End,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .fillMaxHeight(0.1f)
                     .padding(dimensionResource(R.dimen.medium_padding))
             )
 
-
-            IconButton(
-                onClick = { viewModel.clearLast() },
+            Column(
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.End,
                 modifier = Modifier
-                    .align(Alignment.End)
-                    .size(56.dp)
-
-                    .padding(dimensionResource(R.dimen.medium_padding))
-
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.1f)
             ) {
-                Icon(
-                    painterResource(R.drawable.eraser),
-                    contentDescription = "eraser",
-                    tint = MaterialTheme.colorScheme.tertiary,
-                )
-            }
+                IconButton(
+                    onClick = { viewModel.clearLast() },
+                    modifier = Modifier
+                        .size(56.dp)
 
+                        .padding(dimensionResource(R.dimen.medium_padding))
+
+                ) {
+                    Icon(
+                        painterResource(R.drawable.eraser),
+                        contentDescription = "eraser",
+                        tint = MaterialTheme.colorScheme.tertiary,
+                    )
+                }
+            }
 
 
             LazyVerticalGrid(
@@ -146,8 +158,6 @@ fun App(
                     .fillMaxHeight()
 
             ) {
-
-
                 items(keys) { it ->
                     Button(calculatorButton = it, onClick = { viewModel.onButtonClick(it) })
                 }
@@ -190,8 +200,8 @@ fun Button(
         ),
         shape = CircleShape,
         modifier = Modifier
-            .fillMaxWidth()
-            .size(84.dp)
+            .height(96.dp)
+
             .padding(4.dp),
         onClick = { onClick(calculatorButton) }
     ) {
@@ -223,6 +233,13 @@ fun TopBar(modifier: Modifier = Modifier) {
             titleContentColor = MaterialTheme.colorScheme.onPrimary
         )
     )
+}
+
+fun String.format(): String {
+    if (isEmpty()) return ""
+    val formattedDigit = "%,.10f".format(this.toDouble())
+    // removes trailing zeros in decimal digits
+    return formattedDigit.replace("\\.?0*$".toRegex(), "")
 }
 
 
