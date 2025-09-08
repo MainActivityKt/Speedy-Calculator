@@ -1,16 +1,20 @@
 package com.safire.speedycalculator.ui
 
 import android.content.res.Configuration
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
@@ -32,6 +36,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
@@ -84,9 +89,7 @@ fun App(
         CalculatorButton(".", KeyCategory.DECIMAL),
         CalculatorButton("=", KeyCategory.EQUAL_SIGN),
     )
-
     val uiState = viewModel.uiState.collectAsState()
-
 
     Scaffold(
         topBar = { TopBar() }
@@ -94,19 +97,21 @@ fun App(
 
         Column(
 
-            modifier = modifier
-                .padding(innerPadding)
+            modifier = modifier.padding(top = innerPadding.calculateTopPadding())
+
         ) {
             Text(
                 uiState.value.enteredExpression,
                 style = MaterialTheme.typography.bodySmall,
-                lineHeight = 1.2.em,
+                lineHeight = 1.1.em,
                 fontSize = 44.sp,
                 textAlign = TextAlign.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.3f)
-                    .padding(dimensionResource(R.dimen.medium_padding))
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .animateContentSize()
+                        .fillMaxHeight(0.2f)
+                        .padding(dimensionResource(R.dimen.medium_padding))
             )
 
             Text(
@@ -131,7 +136,7 @@ fun App(
                 IconButton(
                     onClick = { viewModel.clearLast() },
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(66.dp)
 
                         .padding(dimensionResource(R.dimen.medium_padding))
 
@@ -145,21 +150,35 @@ fun App(
             }
 
 
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
+            Column(
                 verticalArrangement = Arrangement.Bottom,
-                contentPadding = PaddingValues(
-                    top = dimensionResource(R.dimen.medium_padding),
-                    bottom = dimensionResource(R.dimen.large_padding),
-                    start = dimensionResource(R.dimen.small_padding),
-                    end = dimensionResource(R.dimen.small_padding)
-                ),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .fillMaxHeight()
+                    .fillMaxSize()
+                    .padding(
+                        top = dimensionResource(R.dimen.medium_padding),
+                        bottom = dimensionResource(R.dimen.large_padding),
+                        start = dimensionResource(R.dimen.small_padding),
+                        end = dimensionResource(R.dimen.small_padding)
+                    ),
 
-            ) {
-                items(keys) { it ->
-                    Button(calculatorButton = it, onClick = { viewModel.onButtonClick(it) })
+                ) {
+                keys.chunked(4).forEach { keysRow ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
+                        keysRow.forEach { key ->
+                            Button(
+                                key,
+                                { viewModel.onButtonClick(it) },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .aspectRatio(1f)
+
+                            )
+                        }
+                    }
                 }
 
             }
@@ -168,6 +187,7 @@ fun App(
 
     }
 }
+
 
 @Composable
 fun Button(
@@ -199,10 +219,10 @@ fun Button(
             pressedElevation = 8.dp
         ),
         shape = CircleShape,
-        modifier = Modifier
-            .height(96.dp)
+        modifier = modifier
+            .padding(4.dp)
 
-            .padding(4.dp),
+        ,
         onClick = { onClick(calculatorButton) }
     ) {
         Text(
@@ -210,12 +230,10 @@ fun Button(
             style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier
-
-
         )
     }
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -74,7 +74,10 @@ class CalculatorViewModel : ViewModel() {
             }
 
             KeyCategory.EQUAL_SIGN -> {
-                if (_uiState.value.result.isNotEmpty()) {
+                if (
+                    _uiState.value.result.isNotEmpty() &&
+                    !_uiState.value.result.equals("Infinity", true)  // it happens when dividing by 0
+                    ) {
 
                     _uiState.update {
                         it.copy(
@@ -89,8 +92,8 @@ class CalculatorViewModel : ViewModel() {
 
             KeyCategory.NUMBER_SIGN -> {
                 val lasTwoDigits = _uiState.value.enteredExpression.takeLast(2)
-                if (lasTwoDigits != "(-") {
-                    addToEquation("(-")
+                if (lasTwoDigits != "x(-") {
+                    addToEquation("x(-")
                     openingParenthesisCount++
                 } else {
                     _uiState.update { it ->
