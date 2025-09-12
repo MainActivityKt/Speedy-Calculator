@@ -16,10 +16,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridItemSpanScope
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
@@ -29,6 +32,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -63,6 +67,99 @@ fun App(
     modifier: Modifier = Modifier
 ) {
 
+
+    val uiState = viewModel.uiState.collectAsState()
+
+    Scaffold(
+        topBar = { TopBar() }
+    ) { innerPadding ->
+
+        Column(
+            modifier = modifier.padding(top = innerPadding.calculateTopPadding())
+
+        ) {
+            DisplayPanel(
+                uiState.value.enteredExpression.isNotBlank(),
+                { viewModel.clearLast() },
+                uiState.value.enteredExpression,
+                uiState.value.result.format()
+            )
+            KeypadPanel(
+                onClick = { viewModel.onButtonClick(it) },
+                modifier = Modifier
+                    .weight(1f)
+                    .aspectRatio(1.0f) // for calculator buttons' ratio
+            )
+        }
+    }
+}
+
+@Composable
+fun DisplayPanel(
+    isEraserEnabled: Boolean,
+    onEraserClick: () -> Unit,
+    enteredExpression: String,
+    calculationResult: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        enteredExpression,
+        style = MaterialTheme.typography.bodySmall,
+        lineHeight = 1.1.em,
+        fontSize = 44.sp,
+        textAlign = TextAlign.End,
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.1f)
+                .padding(dimensionResource(R.dimen.medium_padding))
+    )
+
+    Text(
+        calculationResult,
+        style = MaterialTheme.typography.bodySmall,
+        fontSize = 40.sp,
+        color = MaterialTheme.colorScheme.primary,
+        textAlign = TextAlign.End,
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.1f)
+            .padding(dimensionResource(R.dimen.medium_padding))
+    )
+
+    Column(
+        verticalArrangement = Arrangement.Bottom,
+        horizontalAlignment = Alignment.End,
+        modifier = Modifier
+            .padding(dimensionResource(R.dimen.medium_padding))
+
+            .fillMaxWidth()
+            .fillMaxHeight(0.1f)
+    ) {
+        val iconColor =
+            if (isEraserEnabled) MaterialTheme.colorScheme.tertiary
+            else MaterialTheme.colorScheme.tertiaryContainer
+        IconButton(
+            onClick = onEraserClick,
+            enabled = isEraserEnabled,
+            modifier = Modifier
+                .size(dimensionResource(R.dimen.eraser_button_size))
+        ) {
+            Icon(
+                painterResource(R.drawable.eraser),
+                contentDescription = stringResource(R.string.eraser_description),
+                tint = iconColor
+            )
+        }
+    }
+}
+
+@Composable
+fun KeypadPanel(
+    onClick: (CalculatorButton) -> Unit,
+    modifier: Modifier = Modifier
+) {
+
     val keys = listOf(
         CalculatorButton("C", KeyCategory.CLEAR),
         CalculatorButton("()", KeyCategory.PARENTHESIS),
@@ -89,102 +186,34 @@ fun App(
         CalculatorButton(".", KeyCategory.DECIMAL),
         CalculatorButton("=", KeyCategory.EQUAL_SIGN),
     )
-    val uiState = viewModel.uiState.collectAsState()
 
-    Scaffold(
-        topBar = { TopBar() }
-    ) { innerPadding ->
-
-        Column(
-
-            modifier = modifier.padding(top = innerPadding.calculateTopPadding())
-
-        ) {
-            Text(
-                uiState.value.enteredExpression,
-                style = MaterialTheme.typography.bodySmall,
-                lineHeight = 1.1.em,
-                fontSize = 44.sp,
-                textAlign = TextAlign.End,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .animateContentSize()
-                        .fillMaxHeight(0.2f)
-                        .padding(dimensionResource(R.dimen.medium_padding))
-            )
-
-            Text(
-                uiState.value.result.format(),
-                style = MaterialTheme.typography.bodySmall,
-                fontSize = 40.sp,
-                color = MaterialTheme.colorScheme.primary,
-                textAlign = TextAlign.End,
+    Column(
+        Modifier
+            .fillMaxHeight()
+            .padding(
+                top = dimensionResource(R.dimen.small_padding),
+                bottom = dimensionResource(R.dimen.medium_padding),
+                start = dimensionResource(R.dimen.medium_padding),
+                end = dimensionResource(R.dimen.medium_padding)
+            ),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        
+        keys.chunked(4).forEach { keysRow ->
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.1f)
-                    .padding(dimensionResource(R.dimen.medium_padding))
-            )
-
-            Column(
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.End,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.1f)
             ) {
-                IconButton(
-                    onClick = { viewModel.clearLast() },
-                    modifier = Modifier
-                        .size(66.dp)
+                keysRow.forEach { key ->
+                    Button(
+                        key,
+                        onClick,
+                        modifier = modifier
 
-                        .padding(dimensionResource(R.dimen.medium_padding))
-
-                ) {
-                    Icon(
-                        painterResource(R.drawable.eraser),
-                        contentDescription = "eraser",
-                        tint = MaterialTheme.colorScheme.tertiary,
                     )
                 }
             }
-
-
-            Column(
-                verticalArrangement = Arrangement.Bottom,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(
-                        top = dimensionResource(R.dimen.medium_padding),
-                        bottom = dimensionResource(R.dimen.large_padding),
-                        start = dimensionResource(R.dimen.small_padding),
-                        end = dimensionResource(R.dimen.small_padding)
-                    ),
-
-                ) {
-                keys.chunked(4).forEach { keysRow ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        keysRow.forEach { key ->
-                            Button(
-                                key,
-                                { viewModel.onButtonClick(it) },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .aspectRatio(1f)
-
-                            )
-                        }
-                    }
-                }
-
-            }
         }
-
-
     }
 }
 
@@ -220,9 +249,7 @@ fun Button(
         ),
         shape = CircleShape,
         modifier = modifier
-            .padding(4.dp)
-
-        ,
+            .padding(4.dp),
         onClick = { onClick(calculatorButton) }
     ) {
         Text(
