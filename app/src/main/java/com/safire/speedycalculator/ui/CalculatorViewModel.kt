@@ -92,8 +92,12 @@ class CalculatorViewModel : ViewModel() {
 
             KeyCategory.NUMBER_SIGN -> {
                 val lasTwoDigits = _uiState.value.enteredExpression.takeLast(2)
-                if (lasTwoDigits != "x(-") {
-                    addToEquation("x(-")
+                if (lasTwoDigits != "x(-" || lasTwoDigits != "(-") {
+                    if (lastValue.isOpeningParenthesis() || lastValue.isWhitespace()) {
+                        addToEquation("(-")
+                    } else {
+                        addToEquation("x(-")
+                    }
                     openingParenthesisCount++
                 } else {
                     _uiState.update { it ->

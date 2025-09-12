@@ -62,6 +62,9 @@ public class Calculator {
                             break;
 
                         case Divide:
+                            if (b.equals(0.0)) {
+                                return "Infinity";
+                            }
                             result.push(String.valueOf(a / b));
                             break;
                         case PERCENTAGE:
