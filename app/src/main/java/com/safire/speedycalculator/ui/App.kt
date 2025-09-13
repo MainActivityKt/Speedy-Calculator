@@ -16,11 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
-import com.safire.speedycalculator.model.KeyCategory
-import com.safire.speedycalculator.ui.components.*
+import com.safire.speedycalculator.ui.components.DisplayPanel
+import com.safire.speedycalculator.ui.components.EraserButton
+import com.safire.speedycalculator.ui.components.KeypadPanel
+import com.safire.speedycalculator.ui.components.TopBar
 import com.safire.speedycalculator.ui.theme.SpeedyCalculatorTheme
 
-data class CalculatorButton(val text: String, val category: KeyCategory)
 
 @Composable
 fun App(
