@@ -1,8 +1,8 @@
 package com.safire.speedycalculator.ui
 
 import android.content.res.Configuration
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,37 +12,32 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridItemSpanScope
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.preferredFrameRate
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -54,6 +49,9 @@ import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.window.core.layout.WindowHeightSizeClass
+import androidx.window.core.layout.WindowSizeClass
+import androidx.window.core.layout.WindowWidthSizeClass
 
 import com.safire.speedycalculator.R
 import com.safire.speedycalculator.model.KeyCategory
@@ -67,6 +65,8 @@ fun App(
     modifier: Modifier = Modifier
 ) {
 
+    val windowSizeClass = currentWindowAdaptiveInfo().windowSizeClass
+    val width = windowSizeClass.windowWidthSizeClass
 
     val uiState = viewModel.uiState.collectAsState()
 
@@ -74,71 +74,126 @@ fun App(
         topBar = { TopBar() }
     ) { innerPadding ->
 
-        Column(
-            modifier = modifier.padding(top = innerPadding.calculateTopPadding())
+        if (width != WindowWidthSizeClass.EXPANDED) {
+            Column(
+                modifier = modifier.padding(innerPadding)
 
-        ) {
-            DisplayPanel(
-                uiState.value.enteredExpression.isNotBlank(),
-                { viewModel.clearLast() },
-                uiState.value.enteredExpression,
-                uiState.value.result.format()
-            )
-            KeypadPanel(
-                onClick = { viewModel.onButtonClick(it) },
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1.0f) // for calculator buttons' ratio
-            )
+            ) {
+                DisplayPanel(
+                    uiState.value.enteredExpression,
+                    uiState.value.result.format(),
+                    modifier = Modifier.fillMaxHeight(0.3f)
+                )
+
+                EraserButton(
+                    uiState.value.enteredExpression.isNotBlank(),
+                    { viewModel.clearLast() },
+                    modifier = Modifier
+                        .align(Alignment.End)
+                )
+
+                KeypadPanel(
+                    onClick = { viewModel.onButtonClick(it) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(0.7f)
+                    ,
+                    buttonModifier = Modifier
+                        .weight(1f)
+                        .fillMaxSize()
+                    ,
+                    rowModifier = Modifier.weight(1f)
+                    // for calculator buttons' ratio
+                )
+            }
+        } else {
+            Row(
+                modifier = modifier
+                    .fillMaxWidth()
+                    .padding(innerPadding)
+
+            ) {
+                KeypadPanel(
+                    onClick = { viewModel.onButtonClick(it) },
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f),
+                    buttonModifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight(),
+                    rowModifier = Modifier.weight(1f)
+
+                )
+
+                EraserButton(
+                    uiState.value.enteredExpression.isNotBlank(),
+                    { viewModel.clearLast() },
+                    modifier = Modifier.align(Alignment.CenterVertically)
+                )
+
+                DisplayPanel(
+                    uiState.value.enteredExpression,
+                    uiState.value.result.format(),
+
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                )
+
+            }
         }
     }
 }
 
 @Composable
 fun DisplayPanel(
-    isEraserEnabled: Boolean,
-    onEraserClick: () -> Unit,
     enteredExpression: String,
     calculationResult: String,
     modifier: Modifier = Modifier
 ) {
-    Text(
-        enteredExpression,
-        style = MaterialTheme.typography.bodySmall,
-        lineHeight = 1.1.em,
-        fontSize = 44.sp,
-        textAlign = TextAlign.End,
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.1f)
-                .padding(dimensionResource(R.dimen.medium_padding))
-    )
-
-    Text(
-        calculationResult,
-        style = MaterialTheme.typography.bodySmall,
-        fontSize = 40.sp,
-        color = MaterialTheme.colorScheme.primary,
-        textAlign = TextAlign.End,
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(0.1f)
-            .padding(dimensionResource(R.dimen.medium_padding))
-    )
-
     Column(
-        verticalArrangement = Arrangement.Bottom,
         horizontalAlignment = Alignment.End,
-        modifier = Modifier
-            .padding(dimensionResource(R.dimen.medium_padding))
-
-            .fillMaxWidth()
-            .fillMaxHeight(0.1f)
+        modifier = modifier
+            .padding(8.dp)
     ) {
-        val iconColor =
-            if (isEraserEnabled) MaterialTheme.colorScheme.tertiary
-            else MaterialTheme.colorScheme.tertiaryContainer
+
+        Text(
+            enteredExpression,
+            style = MaterialTheme.typography.bodySmall,
+            lineHeight = 1.1.em,
+            fontSize = 44.sp,
+            textAlign = TextAlign.End,
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .weight(0.1f)
+                    .padding(dimensionResource(R.dimen.medium_padding))
+        )
+        Text(
+            calculationResult,
+            style = MaterialTheme.typography.bodySmall,
+            fontSize = 40.sp,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.End,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(0.1f)
+                .padding(dimensionResource(R.dimen.medium_padding))
+        )
+    }
+}
+
+@Composable
+fun EraserButton(
+    isEraserEnabled: Boolean,
+    onEraserClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+
+    val iconColor =
+        if (isEraserEnabled) MaterialTheme.colorScheme.tertiary
+        else MaterialTheme.colorScheme.tertiaryContainer
+
+    Box(modifier = modifier) {
         IconButton(
             onClick = onEraserClick,
             enabled = isEraserEnabled,
@@ -157,7 +212,9 @@ fun DisplayPanel(
 @Composable
 fun KeypadPanel(
     onClick: (CalculatorButton) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    rowModifier: Modifier = Modifier,
+    buttonModifier: Modifier = Modifier
 ) {
 
     val keys = listOf(
@@ -188,7 +245,7 @@ fun KeypadPanel(
     )
 
     Column(
-        Modifier
+        modifier
             .fillMaxHeight()
             .padding(
                 top = dimensionResource(R.dimen.small_padding),
@@ -201,15 +258,15 @@ fun KeypadPanel(
         
         keys.chunked(4).forEach { keysRow ->
             Row(
-                modifier = Modifier
+                modifier = rowModifier
                     .fillMaxWidth()
+
             ) {
                 keysRow.forEach { key ->
                     Button(
                         key,
                         onClick,
-                        modifier = modifier
-
+                        buttonModifier
                     )
                 }
             }
@@ -269,7 +326,8 @@ fun TopBar(modifier: Modifier = Modifier) {
         title = {
             Text(
                 stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold
             )
         }, navigationIcon = {
             Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null)
@@ -288,7 +346,10 @@ fun String.format(): String {
 }
 
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(
+    showBackground = true, showSystemUi = true,
+    device = "id:pixel_xl"
+)
 @Composable
 fun AppPreviewLightMode() {
     SpeedyCalculatorTheme {
