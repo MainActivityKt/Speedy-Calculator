@@ -13,9 +13,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.window.core.layout.WindowWidthSizeClass
+import com.safire.speedycalculator.R
 import com.safire.speedycalculator.ui.components.DisplayPanel
 import com.safire.speedycalculator.ui.components.EraserButton
 import com.safire.speedycalculator.ui.components.KeypadPanel
@@ -54,6 +56,7 @@ fun App(
                     { viewModel.clearLast() },
                     modifier = Modifier
                         .align(Alignment.End)
+                        .padding(dimensionResource(R.dimen.medium_padding))
                 )
 
                 KeypadPanel(
@@ -99,20 +102,21 @@ fun App(
                     uiState.value.result.format(),
 
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .fillMaxHeight()
+                        .fillMaxSize()
                 )
-
             }
         }
     }
 }
 
-fun String.format(): String {
+fun String.format(thousandsDivisor: Boolean = true): String {
     if (isEmpty()) return ""
-    val formattedDigit = "%,.10f".format(this.toDouble())
+    val formattedDigit = if (!thousandsDivisor) "%.10f".format(toDouble()) else
+        "%,.10f".format(this.toDouble())
     // removes trailing zeros in decimal digits
-    return formattedDigit.replace("\\.0*$".toRegex(), "")
+    return if (formattedDigit.contains(".")) formattedDigit
+        .replace("\\.?0+$".toRegex(), "")
+    else formattedDigit
 }
 
 
