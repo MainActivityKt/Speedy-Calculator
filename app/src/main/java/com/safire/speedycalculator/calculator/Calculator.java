@@ -13,14 +13,14 @@ public class Calculator {
     static final Pattern RIGHT_PARENTHESIS = Pattern.compile("\\)");
 
     static Pattern SINGLE_NUMBER = Pattern.compile("-*\\d+(.\\d+)?");
-    static final Pattern OPERATOR = Pattern.compile("[+\\-x÷%]|-+");
+    static final Pattern OPERATOR = Pattern.compile("[+\\-×÷%]|-+");
 
     Map<String, Operator> operatorsPrecedence = new HashMap<>();
 
     public Calculator() {
         operatorsPrecedence.put("+", new Operator(1, OperatorName.ADD));
         operatorsPrecedence.put("-", new Operator(1, OperatorName.SUBTRACT));
-        operatorsPrecedence.put("x", new Operator(2, OperatorName.Multiply));
+        operatorsPrecedence.put("×", new Operator(2, OperatorName.Multiply));
         operatorsPrecedence.put("÷", new Operator(2, OperatorName.Divide));
         operatorsPrecedence.put("%", new Operator(3, OperatorName.PERCENTAGE));
     }
@@ -82,7 +82,7 @@ public class Calculator {
         Deque<String> result = new ArrayDeque<>();
         Deque<String> stack = new ArrayDeque<>(); //rename to operatorsStack
 
-        Pattern pattern = Pattern.compile("(?<![\\d)])-?\\d+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?|[-+x÷%()]");
+        Pattern pattern = Pattern.compile("(?<![\\d)])-?\\d+(?:\\.\\d+)?|\\d+(?:\\.\\d+)?|[-+×÷%()]");
         Matcher matcher = pattern.matcher(infix);
 
         while (matcher.find()) {

@@ -3,6 +3,7 @@ package com.safire.speedycalculator.ui
 import androidx.core.text.isDigitsOnly
 import androidx.lifecycle.ViewModel
 import com.safire.speedycalculator.calculator.Calculator
+import com.safire.speedycalculator.model.CalculatorButton
 import com.safire.speedycalculator.model.CalculatorUiState
 import com.safire.speedycalculator.model.KeyCategory
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,7 +39,7 @@ class CalculatorViewModel : ViewModel() {
 
             KeyCategory.DECIMAL -> {
                 if (!lastEntryHasDecimal) {
-                    // if decimal is the first digit or comes after a non-digit item, change it to 0.
+                    // if decimal is the first digit or comes after a non-digit item, add "0" in the beginning of it.
                     addToEquation(
                         if (!lastValue.isDigit()) "0${button.text}" else button.text
                     )
@@ -52,7 +53,7 @@ class CalculatorViewModel : ViewModel() {
                         addToEquation(CLOSING_PARENTHESIS)
                         openingParenthesisCount--
                     } else {
-                        addToEquation("x$OPENING_PARENTHESIS")
+                        addToEquation("×$OPENING_PARENTHESIS")
                         openingParenthesisCount++
                     }
                 } else if (lastValue.isWhitespace() || lastValue.isOperator() || lastValue.isOpeningParenthesis()) {
@@ -63,25 +64,30 @@ class CalculatorViewModel : ViewModel() {
 
             KeyCategory.DIGIT -> {
                 if (lastValue.isClosingParenthesis()) {
-                    addToEquation("x${button.text}")
+                    addToEquation("×${button.text}")
                 }
                 addToEquation(button.text)
             }
 
             KeyCategory.CLEAR -> {
                 resetViewModel()
-
             }
 
             KeyCategory.EQUAL_SIGN -> {
                 if (
                     _uiState.value.result.isNotEmpty() &&
-                    !_uiState.value.result.equals("Infinity", true)  // it happens when dividing by 0
-                    ) {
-
+                    !_uiState.value.result.equals(
+                        "Infinity",
+                        true
+                    )  // it happens when dividing by 0
+                ) {
                     _uiState.update {
+                        val formattedResult =
+                            "%.10f".format(_uiState.value.result.toDouble())
+                                .replace("\\.0*$".toRegex(), "")
+
                         it.copy(
-                            enteredExpression = _uiState.value.result,
+                            enteredExpression = formattedResult,
                             result = ""
                         )
                     }
@@ -96,14 +102,16 @@ class CalculatorViewModel : ViewModel() {
                     if (lastValue.isOpeningParenthesis() || lastValue.isWhitespace() || lastValue.isWhitespace()) {
                         addToEquation("(-")
                     } else {
-                        addToEquation("x(-")
+                        addToEquation("×(-")
                     }
                     openingParenthesisCount++
                 } else {
                     _uiState.update { it ->
-                        it.copy(enteredExpression = it.enteredExpression.dropLast(
-                            if (_uiState.value.enteredExpression.endsWith("x(-")) 3 else 2
-                        ))
+                        it.copy(
+                            enteredExpression = it.enteredExpression.dropLast(
+                                if (_uiState.value.enteredExpression.endsWith("×(-")) 3 else 2
+                            )
+                        )
                     }
                 }
             }
@@ -118,7 +126,8 @@ class CalculatorViewModel : ViewModel() {
         }
         _uiState.update {
             val expression = it.enteredExpression + value
-            val result = if (expression.expressionIsValid()) calculator.evaluateExpression(expression) else ""
+            val result =
+                if (expression.expressionIsValid()) calculator.evaluateExpression(expression) else ""
             it.copy(
                 enteredExpression = expression,
                 result = result
@@ -145,7 +154,9 @@ class CalculatorViewModel : ViewModel() {
             val expression = it.enteredExpression.dropLast(1)
             it.copy(
                 enteredExpression = expression,
-                result = if (expression.expressionIsValid()) calculator.evaluateExpression(expression) else ""
+                result = if (expression.expressionIsValid()) calculator.evaluateExpression(
+                    expression
+                ) else ""
             )
         }
 
@@ -160,7 +171,7 @@ class CalculatorViewModel : ViewModel() {
 
 fun String.expressionIsValid() =
     isNotEmpty() &&
-    !endsWith('.') &&
+            !endsWith('.') &&
             !last().isOperator() &&
             !last().isOpeningParenthesis() && count { it.isOpeningParenthesis() } == count { it.isClosingParenthesis() }
 
@@ -169,4 +180,4 @@ fun Char.isOpeningParenthesis() = this.toString() == OPENING_PARENTHESIS
 
 fun Char.isDigit() = toString().matches(Regex("\\d"))
 
-fun Char.isOperator() = this.toString().matches(Regex("[+\\-x÷%]"))
+fun Char.isOperator() = this.toString().matches(Regex("[+\\-×÷%]"))
