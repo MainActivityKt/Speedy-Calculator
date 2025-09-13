@@ -91,9 +91,9 @@ class CalculatorViewModel : ViewModel() {
             }
 
             KeyCategory.NUMBER_SIGN -> {
-                val lasTwoDigits = _uiState.value.enteredExpression.takeLast(2)
-                if (lasTwoDigits != "x(-" || lasTwoDigits != "(-") {
-                    if (lastValue.isOpeningParenthesis() || lastValue.isWhitespace()) {
+
+                if (!_uiState.value.enteredExpression.endsWith("(-")) {
+                    if (lastValue.isOpeningParenthesis() || lastValue.isWhitespace() || lastValue.isWhitespace()) {
                         addToEquation("(-")
                     } else {
                         addToEquation("x(-")
@@ -101,7 +101,9 @@ class CalculatorViewModel : ViewModel() {
                     openingParenthesisCount++
                 } else {
                     _uiState.update { it ->
-                        it.copy(enteredExpression = it.enteredExpression.dropLast(2))
+                        it.copy(enteredExpression = it.enteredExpression.dropLast(
+                            if (_uiState.value.enteredExpression.endsWith("x(-")) 3 else 2
+                        ))
                     }
                 }
             }
