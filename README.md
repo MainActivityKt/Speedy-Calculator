@@ -46,8 +46,6 @@ built as part of my Android development internship at [Oasis Infobyte](https://o
 - The UI is divided into two parts: the [keypad](app/src/main/java/com/safire/speedycalculator/ui/components/KeypadPanel.kt), and the [display panel](app/src/main/java/com/safire/speedycalculator/ui/components/DisplayPanel.kt).
 - When the app is run on tablets or devices with expanded width, these components are placed horizontally, with eraser button coming in the middle.
 
-## Installation
-
 ## Credits
 
 
