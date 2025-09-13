@@ -82,12 +82,8 @@ class CalculatorViewModel : ViewModel() {
                     )  // it happens when dividing by 0
                 ) {
                     _uiState.update {
-                        val formattedResult =
-                            "%.10f".format(_uiState.value.result.toDouble())
-                                .replace("\\.0*$".toRegex(), "")
-
                         it.copy(
-                            enteredExpression = formattedResult,
+                            enteredExpression = _uiState.value.result.format(false),
                             result = ""
                         )
                     }
