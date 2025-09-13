@@ -9,11 +9,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.safire.speedycalculator.R
+import com.safire.speedycalculator.model.CalculatorButton
 import com.safire.speedycalculator.model.KeyCategory
-import com.safire.speedycalculator.ui.CalculatorButton
 
 @Composable
 fun Button(
@@ -46,7 +48,7 @@ fun Button(
         ),
         shape = CircleShape,
         modifier = modifier
-            .padding(4.dp),
+            .padding(dimensionResource(R.dimen.small_padding)),
         onClick = { onClick(calculatorButton) }
     ) {
         Text(
