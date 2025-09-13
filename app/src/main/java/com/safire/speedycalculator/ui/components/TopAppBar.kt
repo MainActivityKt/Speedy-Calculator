@@ -25,10 +25,12 @@ fun TopBar(modifier: Modifier = Modifier) {
                 fontWeight = FontWeight.ExtraBold
             )
         }, navigationIcon = {
-            Image(painterResource(R.drawable.ic_launcher_foreground), contentDescription = null)
+            Image(
+                painterResource(R.drawable.ic_launcher_foreground),
+                contentDescription = "Calculator icon")
         }, colors = TopAppBarDefaults.topAppBarColors().copy(
             containerColor = MaterialTheme.colorScheme.primary,
             titleContentColor = MaterialTheme.colorScheme.onPrimary
-        )
+        ), modifier = modifier
     )
 }
