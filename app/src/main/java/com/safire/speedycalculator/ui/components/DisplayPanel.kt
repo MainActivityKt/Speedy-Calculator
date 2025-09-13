@@ -25,7 +25,7 @@ fun DisplayPanel(
     Column(
         horizontalAlignment = Alignment.End,
         modifier = modifier
-            .padding(8.dp)
+            .padding(dimensionResource(R.dimen.medium_padding))
     ) {
 
         Text(
